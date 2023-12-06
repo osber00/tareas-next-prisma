@@ -11,26 +11,25 @@ export const GET = async (request, { params }) => {
 };
 
 export const PUT = async (request, { params }) => {
-  const { titulo, descripcion, usuario_id, realizada } = await request.json();
+  const datos = await request.json();
   const updateTarea = await prismaClient.tareas.update({
-    data: {
-      titulo: titulo,
-      descripcion: descripcion,
-      usuario_id: usuario_id,
-      realizada: realizada,
-    },
     where: {
       id: Number(params.id),
     },
+    data: datos,
   });
   return NextResponse.json(updateTarea);
 };
 
 export const DELETE = async (request, { params }) => {
-  const deleteTarea = await prismaClient.tareas.delete({
-    where: {
-      id: Number(params.id),
-    },
-  });
-  return NextResponse.json(deleteTarea);
+  try {
+    const deleteTarea = await prismaClient.tareas.delete({
+      where: {
+        id: Number(params.id),
+      },
+    });
+    return NextResponse.json(deleteTarea);
+  } catch (error) {
+    return NextResponse.json(error.message);
+  }
 };
