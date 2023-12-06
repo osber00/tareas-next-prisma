@@ -22,7 +22,7 @@ model Usuarios {
 model Tareas{
   id Int @id @default(autoincrement())
   titulo String
-  descripcion String
+  descripcion String @db.MediumText
   realizada Boolean @default(false)
   usuario Usuarios @relation(fields: [usuario_id], references: [id])
   usuario_id Int

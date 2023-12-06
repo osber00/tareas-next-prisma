@@ -1,9 +1,11 @@
+import { prismaClient } from "@/services/database";
 import { NextResponse } from "next/server";
 
-export function GET() {
-    return NextResponse.json('Obtener usuarios')
+export const GET = async() => {
+    const usuarios = await prismaClient.usuarios.findMany()
+    return NextResponse.json(usuarios)
 }
 
-export function POST(request) {
+export const POST = (request) => {
     return NextResponse.json('Crear Usuario')
 }
