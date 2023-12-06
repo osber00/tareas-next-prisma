@@ -1,26 +1,55 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const NuevaTareaPage = () => {
+const NuevaTareaPage = ({ params }) => {
   const route = useRouter();
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [realizada, setRealizada] = useState(false);
+  const [usuario_id, setUsuario_id] = useState(2);
+  const [editando, setEditando] = useState(false);
+
+  //Consultar para editar
+  const fetchTarea = async (tareaid) => {
+    const req = await fetch(`/api/tareas/${tareaid}`);
+    const res = await req.json();
+    setTitulo(res.titulo);
+    setUsuario_id(res.usuario_id);
+    setRealizada(res.realizada);
+    setDescripcion(res.descripcion);
+  };
+
+  useEffect(() => {
+    if (params.id) {
+      setEditando(true);
+      fetchTarea(params.id);
+    }
+  }, []);
 
   const handleForm = async (e) => {
     e.preventDefault();
-    const usuario_id = 2;
 
-    const req = await fetch("/api/tareas", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ titulo, descripcion, usuario_id }),
-    });
+    if (editando) {
+      const req = await fetch(`/api/tareas/${params.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ titulo, descripcion, usuario_id, realizada }),
+      });
+      const res = await req.json();
+    } else {
+      const req = await fetch("/api/tareas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ titulo, descripcion, usuario_id }),
+      });
 
-    const res = await req.json();
-    console.log(res);
+      const res = await req.json();
+    }
     route.refresh();
     route.push("/");
   };
@@ -30,7 +59,7 @@ const NuevaTareaPage = () => {
         onSubmit={handleForm}
         className='bg-slate-800 py-3 px-2 mt-6 rounded-md w-3/4'>
         <h1 className='text-2xl font-bold text-center uppercase'>
-          Crear tarea
+          {editando ? "Editar" : "Crear"} tarea
         </h1>
         <div className='flex flex-col py-3 px-3'>
           <label htmlFor='titulo' className='text-lg px-1 py-1'>
@@ -42,6 +71,7 @@ const NuevaTareaPage = () => {
             placeholder='Título de la tarea'
             autoComplete='off'
             onChange={(e) => setTitulo(e.target.value)}
+            value={titulo}
           />
         </div>
         <div className='flex flex-col py-3 px-3'>
@@ -53,11 +83,24 @@ const NuevaTareaPage = () => {
             id='descripcion'
             placeholder='Descripción de la tarea'
             rows='5'
-            onChange={(e) => setDescripcion(e.target.value)}></textarea>
+            onChange={(e) => setDescripcion(e.target.value)}
+            value={descripcion}></textarea>
         </div>
+        {editando && (
+          <div className='py-2 px-3 rounded-sm'>
+            <input
+              className='py-1 px-1 mr-1'
+              type='checkbox'
+              checked={realizada}
+              value={realizada}
+              onChange={(e) => setRealizada(!realizada)}
+            />{" "}
+            {realizada ? "Realizada" : "Pendiente"}
+          </div>
+        )}
         <div className='text-right my-3 mx-3'>
           <button className='bg-blue-600 py-2 px-2 rounded-md uppercase text-sm font-semibold'>
-            Guardar
+            {editando ? "Confirmar" : " Guardar"}
           </button>
         </div>
       </form>
